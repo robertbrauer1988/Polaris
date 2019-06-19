@@ -44,6 +44,7 @@ class CDustComponent
         mass = 0;
         fraction = 0;
         calorimetry_temperatures = 0;
+        avgMass_cell = 0;
 
         tCext1 = 0;
         tCext2 = 0;
@@ -240,6 +241,8 @@ class CDustComponent
             delete[] a_eff_2;
         if(mass != 0)
             delete[] mass;
+        if(avgMass_cell != 0)
+            delete[] avgMass_cell;
 
         if(sca_mat != 0)
             cleanScatteringData();
@@ -1695,8 +1698,16 @@ class CDustComponent
         return a;
     }
 
+    void setAvgMass(CGridBasic * grid);
+
     double getAvgMass(CGridBasic * grid, cell_basic * cell)
     {
+        if(avgMass_cell != 0)
+        {
+            uint cell_id = cell->getID();
+            return avgMass_cell[cell_id];
+        }
+        
         if(avg_mass != 0)
             return avg_mass;
 
@@ -2198,6 +2209,7 @@ class CDustComponent
     double * mass;
     double *tCext1, *tCext2, *tCabs1, *tCabs2, *tCsca1, *tCsca2, *tCcirc, *tHGg;
     double * scattering_angles;
+    double * avgMass_cell;
 
     string stringID;
     string size_keyword;
@@ -2294,6 +2306,13 @@ class CDustMixture
     double getAvgMass(uint i_mixture)
     {
         return mixed_component[i_mixture].getAvgMass();
+    }
+
+    void setAvgMass(CGridBasic * grid)
+    {
+        if(mixed_component != 0)
+            for(uint i_mixture = 0; i_mixture < getNrOfMixtures(); i_mixture++)
+                mixed_component[i_mixture].setAvgMass(grid);
     }
 
     bool writeComponent(string path_data, string path_plot)

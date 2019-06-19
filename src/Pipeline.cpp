@@ -359,6 +359,8 @@ bool CPipeline::calcPolarizationMapsViaMC(parameters & param)
 
     omp_set_num_threads(param.getNrOfThreads());
 
+    dust->setAvgMass(grid);
+
     rad.initiateDustMC(param);
     rad.calcPolMapsViaMC();
 

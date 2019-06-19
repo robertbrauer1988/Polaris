@@ -61,6 +61,41 @@ void CDustComponent::initDustProperties()
     HG_g_factor = new spline[nr_of_dust_species * nr_of_wavelength];
 }
 
+void CDustComponent::setAvgMass(CGridBasic * grid)
+{
+    ulong nr_of_cells = grid->getMaxDataCells();
+    avgMass_cell = new double[nr_of_cells];
+
+    for(ulong i_cell = 0; i_cell < nr_of_cells; i_cell++)
+    {
+        cell_basic * cell = grid->getCellFromIndex(i_cell);
+        // Get local min and max grain sizes
+        double a_min = getSizeMin(grid, cell);
+        double a_max = getSizeMax(grid, cell);
+
+        // Get local size parameter for size distribution
+        double size_param = getSizeParam(grid, cell);
+
+        // Get integration over the dust size distribution
+        double * rel_weight = getRelWeight(a_min, a_max, size_param);
+
+        // Create the final mass distribution
+        for(uint a = 0; a < nr_of_dust_species; a++)
+        {
+            rel_weight[a] *= mass[a];
+        }
+
+        // Calculate the average mass of the dust grains in the current cell
+        double tmp_avg_mass =
+            CMathFunctions::integ_dust_size(a_eff, rel_weight, nr_of_dust_species, a_min, a_max);
+
+        // Delete pointer array
+        delete[] rel_weight;
+
+        avgMass_cell[i_cell] = tmp_avg_mass;
+    }
+}
+
 void CDustComponent::initScatteringMatrixArray()
 {
     // Init counter and percentage to show progress
